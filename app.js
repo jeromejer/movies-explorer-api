@@ -5,6 +5,8 @@ const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middleware/logger');
 const errorHandler = require('./middleware/error-handler');
 require('dotenv').config();
+const { auth } = require('./middleware/auth');
+const NotFoundError = require('./errors/not-found-error');
 
 const { PORT = 3000 } = process.env;
 
@@ -18,6 +20,17 @@ mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
 });
 
 app.use(requestLogger);
+
+app.use(auth);
+
+app.use('/users', require('./routes/users'));
+app.use('/movies', require('./routes/movies'));
+
+app.use((req, res) => {
+  res.send(() => {
+    throw new NotFoundError('Запрашиваемая страница не найдена');
+  });
+});
 
 app.use(errorLogger);
 app.use(errors());
