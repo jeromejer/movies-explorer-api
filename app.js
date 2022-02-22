@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const { celebrate, Joi } = require('celebrate');
+const cors = require('cors');
 const { requestLogger, errorLogger } = require('./middleware/logger');
 const errorHandler = require('./middleware/error-handler');
 require('dotenv').config();
@@ -23,6 +24,19 @@ mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
 });
 
 app.use(requestLogger);
+
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://jeromejer.nomoredomains.work',
+    'https://jeromejer.nomoredomains.work',
+  ],
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: ['Content-Type', 'origin', 'Authorization'],
+  credentials: true,
+}));
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
