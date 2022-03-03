@@ -6,12 +6,13 @@ const ConflictError = require('../errors/conflict-error');
 
 module.exports.getUser = (req, res, next) => {
   const owner = req.user._id;
-  User.findOne(owner)
+
+  User.findById(owner)
     .then((dataUser) => {
       if (!dataUser) {
         throw new NotFoundError('Такого пользователя не существует');
       } else {
-        res.status(200).send(dataUser._id, dataUser.name);
+        res.status(200).send(dataUser);
       }
     })
     .catch(next);
@@ -31,10 +32,12 @@ module.exports.updateUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('Переданы некорректные данные'));
-      } else {
-        next(err);
+        return next(new ValidationError('Переданы некорректные данные'));
       }
+      if (err.code === 11000) {
+        return next(new ConflictError('Email принадлежит другому пользователю'));
+      }
+      return next(err);
     });
 };
 
